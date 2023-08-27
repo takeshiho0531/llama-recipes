@@ -233,21 +233,22 @@ def main(**kwargs):
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
 
     # Start the training process
-    results = train(
-        model,
-        train_dataloader,
-        eval_dataloader,
-        tokenizer,
-        optimizer,
-        scheduler,
-        gradient_accumulation_steps,
-        train_config,
-        fsdp_config if train_config.enable_fsdp else None,
-        local_rank if train_config.enable_fsdp else None,
-        rank if train_config.enable_fsdp else None,
-    )
-    if not train_config.enable_fsdp or rank==0:
-        [print(f'Key: {k}, Value: {v}') for k, v in results.items()]
+    with torch.autocast("cuda"):
+        results = train(
+            model,
+            train_dataloader,
+            eval_dataloader,
+            tokenizer,
+            optimizer,
+            scheduler,
+            gradient_accumulation_steps,
+            train_config,
+            fsdp_config if train_config.enable_fsdp else None,
+            local_rank if train_config.enable_fsdp else None,
+            rank if train_config.enable_fsdp else None,
+        )
+        if not train_config.enable_fsdp or rank==0:
+            [print(f'Key: {k}, Value: {v}') for k, v in results.items()]
 
 if __name__ == "__main__":
     fire.Fire(main)
