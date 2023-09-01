@@ -20,7 +20,7 @@ class train_config:
     use_fp16: bool=False
     mixed_precision: bool=True
     val_batch_size: int=1
-    dataset = "wiki40b_ja_dataset" #"samsum_dataset"
+    dataset = "wiki_ja_small" #"samsum_dataset"
     micro_batch_size: int=4
     peft_method: str = "lora" # None , llama_adapter, prefix
     use_peft: bool=False

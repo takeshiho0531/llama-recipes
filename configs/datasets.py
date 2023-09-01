@@ -33,3 +33,10 @@ class wiki40b_ja_dataset:
     train_split: str = "train"
     test_split: str = "validation"
     input_length: int = 2048
+
+@dataclass
+class wiki_ja_small:
+    dataset: str="wiki_ja_small"
+    train_split: str="train[:10%]"
+    test_split: str="train[20%:30%]"
+    input_length: int = 2048

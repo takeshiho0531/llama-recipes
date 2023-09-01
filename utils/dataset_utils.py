@@ -9,7 +9,8 @@ from ft_datasets import (
     get_grammar_dataset,
     get_alpaca_dataset,
     get_samsum_dataset,
-    get_wiki40b_ja_dataset
+    get_wiki40b_ja_dataset,
+    get_wiki_ja_small_dataset
 )
 from typing import Optional
 
@@ -18,7 +19,8 @@ DATASET_PREPROC = {
     "alpaca_dataset": partial(get_alpaca_dataset, max_words=224),
     "grammar_dataset": get_grammar_dataset,
     "samsum_dataset": get_samsum_dataset,
-    "wiki40b_ja_dataset": get_wiki40b_ja_dataset
+    "wiki40b_ja_dataset": get_wiki40b_ja_dataset,
+    "wiki_ja_small": get_wiki_ja_small_dataset,
 }
 
 
