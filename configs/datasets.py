@@ -26,3 +26,10 @@ class alpaca_dataset:
     train_split: str = "train"
     test_split: str = "val"
     data_path: str = "ft_datasets/alpaca_data.json"
+
+@dataclass
+class wiki40b_ja_dataset:
+    dataset: str = "wiki40b_ja_dataset"
+    train_split: str = "train"
+    test_split: str = "validation"
+    input_length: int = 2048
