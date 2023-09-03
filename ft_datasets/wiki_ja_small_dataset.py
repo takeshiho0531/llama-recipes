@@ -2,7 +2,7 @@ import datasets
 from .utils import Concatenator
 
 def get_preprocessed_wiki_ja_small(dataset_config, tokenizer, split):
-    dataset = datasets.load_dataset("graelo/wikipedia", split=split)
+    dataset = datasets.load_dataset("graelo/wikipedia", "20230601.ja" ,split=split)
 
     dataset=dataset.map(
         lambda sample: tokenizer(sample["text"]),
