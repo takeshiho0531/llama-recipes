@@ -37,6 +37,6 @@ class wiki40b_ja_dataset:
 @dataclass
 class wiki_ja_small:
     dataset: str="wiki_ja_small"
-    train_split: str="train[:10%]"
-    test_split: str="train[20%:30%]"
+    train_split: str="train[:1%]"
+    test_split: str="train[2%:3%]"
     input_length: int = 2048
