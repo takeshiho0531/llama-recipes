@@ -132,6 +132,38 @@ def main(**kwargs):
         model = get_peft_model(model, peft_config)
         model.print_trainable_parameters()
 
+        for param in model.parameters():
+            param.requires_grad = False
+        model.embed_tokens.weight.requires_grad = True
+        model.layers[0].self_attn.q_proj.weight.requires_grad = True
+        model.layers[0].self_attn.k_proj.weight.requires_grad = True
+        model.layers[0].self_attn.v_proj.weight.requires_grad = True
+        model.layers[0].self_attn.o_proj.weight.requires_grad = True
+        model.layers[0].mlp.gate_proj.weight.requires_grad = True
+        model.layers[0].mlp.up_proj.weight.requires_grad = True
+        model.layers[0].mlp.down_proj.weight.requires_grad = True
+        model.layers[0].input_layernorm.weight.requires_grad = True
+        model.layers[0].post_attention_layernorm.weight.requires_grad = True
+        model.layers[1].self_attn.q_proj.weight.requires_grad = True
+        model.layers[1].self_attn.k_proj.weight.requires_grad = True
+        model.layers[1].self_attn.v_proj.weight.requires_grad = True
+        model.layers[1].self_attn.o_proj.weight.requires_grad = True
+        model.layers[1].mlp.gate_proj.weight.requires_grad = True
+        model.layers[1].mlp.up_proj.weight.requires_grad = True
+        model.layers[1].mlp.down_proj.weight.requires_grad = True
+        model.layers[1].input_layernorm.weight.requires_grad = True
+        model.layers[1].post_attention_layernorm.weight.requires_grad = True
+        model.layers[2].self_attn.q_proj.weight.requires_grad = True
+        model.layers[2].self_attn.k_proj.weight.requires_grad = True
+        model.layers[2].self_attn.v_proj.weight.requires_grad = True
+        model.layers[2].self_attn.o_proj.weight.requires_grad = True
+        model.layers[2].mlp.gate_proj.weight.requires_grad = True
+        model.layers[2].mlp.up_proj.weight.requires_grad = True
+        model.layers[2].mlp.down_proj.weight.requires_grad = True
+        model.layers[2].input_layernorm.weight.requires_grad = True
+        model.layers[2].post_attention_layernorm.weight.requires_grad = True
+
+
     #setting up FSDP if enable_fsdp is enabled
     if train_config.enable_fsdp:
         if not train_config.use_peft and train_config.freeze_layers:
