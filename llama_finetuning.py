@@ -133,8 +133,8 @@ def main(**kwargs):
         model.print_trainable_parameters()
 
     # updateするパラメータを制御
-    params_to_update = []
-    update_param_names = ['model.embed_tokens.weight',
+    update_param_low_lr = []
+    update_param_high_lr = ['model.embed_tokens.weight',
                           'model.layers.0.self_attn.q_proj.weight',
                           'model.layers.0.self_attn.k_proj.weight',
                           'model.layers.0.self_attn.v_proj.weight',
@@ -163,15 +163,12 @@ def main(**kwargs):
                           'model.layers.2.input_layernorm.weight',
                           'model.layers.2.post_attention_layernorm.weight']
     for name, param in model.named_parameters():
-        if name in update_param_names:
-            param.requires_grad = True
-            params_to_update.append(param)
-            print(name)
+        if name in update_param_high_lr:
+            print('high leraning rate:', name)
+            pass
         else:
-            param.requires_grad = False
-
-
-
+            print('low learning rate:', name)
+            update_param_low_lr.append(param)
 
     #setting up FSDP if enable_fsdp is enabled
     if train_config.enable_fsdp:
@@ -266,10 +263,9 @@ def main(**kwargs):
             use_kahan_summation=False,
         )
     else:
-        optimizer = optim.AdamW(
-            model.parameters(),
-            lr=train_config.lr,
-            weight_decay=0.0,
+        optimizer=optim.AdamW(
+            {'params': update_param_high_lr, 'lr': 1e-5},
+            {'params': update_param_low_lr, 'lr': 1e-7},
         )
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
 
