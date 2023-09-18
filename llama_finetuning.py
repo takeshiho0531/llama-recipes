@@ -279,7 +279,7 @@ def main(**kwargs):
     else:
         optimizer=optim.AdamW(
             {'params': update_param_high_lr, 'lr': 1e-5},
-            {'params': update_param_low_lr, 'lr': 1e-7},
+            {'params': update_param_low_lr, 'lr': 0.0},
         )
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
 
