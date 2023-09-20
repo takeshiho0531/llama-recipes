@@ -2,7 +2,6 @@
 # This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
 
 import os
-import re
 
 import fire
 import torch
@@ -121,7 +120,7 @@ def main(**kwargs):
         model.to(torch.bfloat16)
 
     # Load the tokenizer and add special tokens
-    tokenizer = LlamaTokenizer.from_pretrained(train_config.model_name)
+    tokenizer = LlamaTokenizer.from_pretrained('/app/weight/tokenizer/ja_wiki')
     tokenizer.add_special_tokens(
             {
 
@@ -132,58 +131,6 @@ def main(**kwargs):
         peft_config = generate_peft_config(train_config, kwargs)
         model = get_peft_model(model, peft_config)
         model.print_trainable_parameters()
-
-    # updateするパラメータを制御
-    update_param_low_lr = []
-    update_param_high_lr = ['base_model.model.model.embed_tokens.weight',
-                          'base_model.model.model.layers.0.self_attn.q_proj.weight',
-                          'base_model.model.model.layers.0.self_attn.q_proj.lora_A.default.weight',
-                          'base_model.model.model.layers.0.self_attn.q_proj.lora_B.default.weight',
-                          'base_model.model.model.layers.0.self_attn.k_proj.weight',
-                          'base_model.model.model.layers.0.self_attn.v_proj.weight',
-                          'base_model.model.model.layers.0.self_attn.v_proj.lora_A.default.weight',
-                          'base_model.model.model.layers.0.self_attn.v_proj.lora_B.default.weight',
-                          'base_model.model.model.layers.0.self_attn.o_proj.weight',
-                          'base_model.model.model.layers.0.mlp.gate_proj.weight',
-                          'base_model.model.model.layers.0.mlp.up_proj.weight',
-                          'base_model.model.model.layers.0.mlp.down_proj.weight',
-                          'base_model.model.model.layers.0.input_layernorm.weight',
-                          'base_model.model.model.layers.0.post_attention_layernorm.weight',
-                          'base_model.model.model.layers.1.self_attn.q_proj.weight',
-                          'base_model.model.model.layers.1.self_attn.q_proj.lora_A.default.weight',
-                          'base_model.model.model.layers.1.self_attn.q_proj.lora_B.default.weight',
-                          'base_model.model.model.layers.1.self_attn.k_proj.weight',
-                          'base_model.model.model.layers.1.self_attn.v_proj.weight',
-                          'base_model.model.model.layers.1.self_attn.v_proj.lora_A.default.weight',
-                          'base_model.model.model.layers.1.self_attn.v_proj.lora_B.default.weight',
-                          'base_model.model.model.layers.1.self_attn.o_proj.weight',
-                          'base_model.model.model.layers.1.mlp.gate_proj.weight',
-                          'base_model.model.model.layers.1.mlp.up_proj.weight',
-                          'base_model.model.model.layers.1.mlp.down_proj.weight',
-                          'base_model.model.model.layers.1.input_layernorm.weight',
-                          'base_model.model.model.layers.1.post_attention_layernorm.weight',
-                          'base_model.model.model.layers.2.self_attn.q_proj.weight',
-                          'base_model.model.model.layers.2.self_attn.q_proj.lora_A.default.weight',
-                          'base_model.model.model.layers.2.self_attn.q_proj.lora_B.default.weight',
-                          'base_model.model.model.layers.2.self_attn.k_proj.weight',
-                          'base_model.model.model.layers.2.self_attn.v_proj.weight',
-                          'base_model.model.model.layers.2.self_attn.v_proj.lora_A.default.weight',
-                          'base_model.model.model.layers.2.self_attn.v_proj.lora_B.default.weight',
-                          'base_model.model.model.layers.2.self_attn.o_proj.weight',
-                          'base_model.model.model.layers.2.mlp.gate_proj.weight',
-                          'base_model.model.model.layers.2.mlp.up_proj.weight',
-                          'base_model.model.model.layers.2.mlp.down_proj.weight',
-                          'base_model.model.model.layers.2.input_layernorm.weight',
-                          'base_model.model.model.layers.2.post_attention_layernorm.weight']
-
-
-    for name, param in model.named_parameters():
-        if name in update_param_high_lr:
-            print('high leraning rate:', name)
-            pass
-        else:
-            print('low learning rate:', name)
-            update_param_low_lr.append(param)
 
     #setting up FSDP if enable_fsdp is enabled
     if train_config.enable_fsdp:
@@ -268,14 +215,6 @@ def main(**kwargs):
             collate_fn=default_data_collator,
         )
 
-    pattern_qproj = re.compile(r'base_model\.model\.model\.layers\.\d+\.self_attn\.q_proj\.weight')
-    pattern_vproj = re.compile(r'base_model\.model\.model\.layers\.\d+\.self_attn\.v_proj\.weight')
-    update_param_high_lr=[item for item in update_param_high_lr if not pattern_qproj.match(item)]
-    update_param_high_lr=[item for item in update_param_high_lr if not pattern_vproj.match(item)]
-    update_param_low_lr=[item for item in update_param_low_lr if not pattern_qproj.match(item)]
-    update_param_low_lr=[item for item in update_param_low_lr if not pattern_vproj.match(item)]
-
-
     # Initialize the optimizer and learning rate scheduler
     if fsdp_config.pure_bf16 and fsdp_config.optimizer == "anyprecision":
         optimizer = AnyPrecisionAdamW(
@@ -286,9 +225,10 @@ def main(**kwargs):
             use_kahan_summation=False,
         )
     else:
-        optimizer=optim.AdamW(
-            {'params': update_param_high_lr, 'lr': 1e-5},
-            {'params': update_param_low_lr, 'lr': 0.0},
+        optimizer = optim.AdamW(
+            model.parameters(),
+            lr=train_config.lr,
+            weight_decay=0.0,
         )
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
 
