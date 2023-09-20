@@ -2,6 +2,7 @@
 # This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
 
 import os
+import re
 
 import fire
 import torch
@@ -266,6 +267,14 @@ def main(**kwargs):
             drop_last=True,
             collate_fn=default_data_collator,
         )
+
+    pattern_qproj = re.compile(r'base_model\.model\.model\.layers\.\d+\.self_attn\.q_proj\.weight')
+    pattern_vproj = re.compile(r'base_model\.model\.model\.layers\.\d+\.self_attn\.v_proj\.weight')
+    update_param_high_lr=[item for item in update_param_high_lr if not pattern_qproj.match(item)]
+    update_param_high_lr=[item for item in update_param_high_lr if not pattern_vproj.match(item)]
+    update_param_low_lr=[item for item in update_param_low_lr if not pattern_qproj.match(item)]
+    update_param_low_lr=[item for item in update_param_low_lr if not pattern_vproj.match(item)]
+
 
     # Initialize the optimizer and learning rate scheduler
     if fsdp_config.pure_bf16 and fsdp_config.optimizer == "anyprecision":
